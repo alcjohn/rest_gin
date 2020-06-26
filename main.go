@@ -14,12 +14,13 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if err := auth.TokenValid(c.Request); err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		err := auth.TokenValid(c.Request)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "StatusUnauthorized"})
+			c.Abort()
 			return
 		}
 		c.Next()
-
 	}
 }
 
@@ -44,6 +45,7 @@ func main() {
 	}
 
 	books := r.Group("/api/books")
+	books.Use(AuthMiddleware())
 	{
 		books.GET("/", controllers.FindBooks)
 		books.POST("/", controllers.CreateBook)
