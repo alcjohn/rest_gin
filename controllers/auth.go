@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/alcjohn/rest_gin/auth"
 	"github.com/alcjohn/rest_gin/models"
 	"github.com/gin-gonic/gin"
 )
@@ -33,7 +34,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Password"})
 		return
 	}
-	token, err := user.CreateToken()
+	token, err := auth.CreateToken(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error token"})
 	}
@@ -52,4 +53,15 @@ func Register(c *gin.Context) {
 	models.DB.Create(&user)
 
 	c.JSON(http.StatusOK, gin.H{"data": user})
+}
+
+func Me(c *gin.Context) {
+	user, err := auth.User(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": user.Format(),
+	})
 }
