@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type User struct {
@@ -39,11 +41,21 @@ func (u *User) BeforeSave() error {
 	return nil
 }
 
-func (u *User) FormatUser() UserFormat {
+func (u *User) Format() UserFormat {
 	return UserFormat{
 		ID:        u.ID,
 		Email:     u.Email,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}
+}
+
+func (u *User) CreateToken() (string, error) {
+	mySigningKey := []byte("AllYourBase")
+	claims := jwt.StandardClaims{
+		ExpiresAt: 15000,
+		Issuer:    "test",
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(mySigningKey)
 }

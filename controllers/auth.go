@@ -33,8 +33,12 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Password"})
 		return
 	}
+	token, err := user.CreateToken()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error token"})
+	}
 
-	c.JSON(http.StatusOK, gin.H{"data": user})
+	c.JSON(http.StatusOK, gin.H{"token": token})
 
 }
 
