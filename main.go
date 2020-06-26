@@ -1,35 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
+	"github.com/alcjohn/rest_gin/auth"
 	"github.com/alcjohn/rest_gin/controllers"
 	"github.com/alcjohn/rest_gin/models"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		bearToken := c.Request.Header.Get("Authorization")
-		strArr := strings.Split(bearToken, " ")
-		if len(strArr) < 2 {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-			return
-		}
-		_, err := jwt.Parse(strArr[1], func(token *jwt.Token) (interface{}, error) {
-			//Make sure that the token method conform to "SigningMethodHMAC"
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(os.Getenv("ACCESS_SECRET")), nil
-		})
-		if err != nil {
+		if err := auth.TokenValid(c.Request); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
