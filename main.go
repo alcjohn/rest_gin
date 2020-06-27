@@ -44,14 +44,21 @@ func main() {
 		auth.GET("/me", AuthMiddleware(), controllers.Me)
 	}
 
+	var booksModel []models.Book
 	books := r.Group("/api/books")
 	// books.Use(AuthMiddleware())
 	{
-		books.GET("/", controllers.FindBooks)
+		books.GET("/", controllers.Paginate(&booksModel))
 		books.POST("/", controllers.CreateBook)
 		books.GET("/:id", controllers.FindBook)
 		books.PATCH("/:id", controllers.UpdateBook)
 		books.DELETE("/:id", controllers.DeleteBook)
+	}
+
+	var usersModel []models.User
+	users := r.Group("/api/users")
+	{
+		users.GET("/", controllers.Paginate(&usersModel))
 	}
 
 	r.Run(":" + port)
