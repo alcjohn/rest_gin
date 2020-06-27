@@ -20,8 +20,6 @@ func User(c *gin.Context) (*models.User, error) {
 		if err != nil {
 			return nil, err
 		}
-		tugudu := claims["exp"]
-		fmt.Println(tugudu)
 		var user models.User
 
 		if err := models.DB.Where("id = ?", userID).First(&user).Error; err != nil {

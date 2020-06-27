@@ -45,7 +45,7 @@ func main() {
 	}
 
 	books := r.Group("/api/books")
-	books.Use(AuthMiddleware())
+	// books.Use(AuthMiddleware())
 	{
 		books.GET("/", controllers.FindBooks)
 		books.POST("/", controllers.CreateBook)
