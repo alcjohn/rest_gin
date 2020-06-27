@@ -19,9 +19,14 @@ type UpdateBookInput struct {
 
 func FindBooks(c *gin.Context) {
 	var books []models.Book
-	models.DB.Find(&books)
+	// models.DB.Find(&books)
+	params := &models.Params{
+		OrderBy: []string{
+			"author",
+		},
+	}
 
-	c.JSON(http.StatusOK, gin.H{"data": books})
+	c.JSON(http.StatusOK, models.Paginate(params, &books))
 }
 
 func CreateBook(c *gin.Context) {

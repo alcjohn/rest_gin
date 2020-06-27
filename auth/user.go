@@ -2,15 +2,15 @@ package auth
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 
 	"github.com/alcjohn/rest_gin/models"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 )
 
-func User(r *http.Request) (*models.User, error) {
-	token, err := VerifyToken(r)
+func User(c *gin.Context) (*models.User, error) {
+	token, err := VerifyToken(c.Request)
 	if err != nil {
 		return nil, err
 	}

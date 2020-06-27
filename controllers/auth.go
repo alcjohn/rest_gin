@@ -61,7 +61,7 @@ func Register(c *gin.Context) {
 }
 
 func Me(c *gin.Context) {
-	user, err := auth.User(c.Request)
+	user, err := auth.User(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
