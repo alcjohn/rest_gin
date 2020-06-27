@@ -7,12 +7,9 @@ import (
 )
 
 type User struct {
-	ID        uint       `json:"id" gorm:"primary_key"`
-	Email     string     `json:"email"`
-	Password  string     `json:"password"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"-"`
+	BaseModel
+	Email    string `gorm:"unique;not null" json:"email"`
+	Password string `gorm:"not null" json:"password"`
 }
 
 type UserFormat struct {
