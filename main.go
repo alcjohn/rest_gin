@@ -46,13 +46,13 @@ func main() {
 
 	var booksModel []models.Book
 	books := r.Group("/api/books")
-	// books.Use(AuthMiddleware())
+	books.Use(AuthMiddleware())
 	{
-		books.GET("/", controllers.Paginate(&booksModel))
-		books.POST("/", controllers.CreateBook)
-		books.GET("/:id", controllers.FindBook)
 		books.PATCH("/:id", controllers.UpdateBook)
-		books.DELETE("/:id", controllers.DeleteBook)
+		books.POST("/", controllers.CreateBook)
+		books.GET("/", controllers.Paginate(&booksModel))
+		books.DELETE("/:id", controllers.Delete(&booksModel))
+		books.GET("/:id", controllers.Show(&booksModel))
 	}
 
 	var usersModel []models.User

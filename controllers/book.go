@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/alcjohn/rest_gin/models"
 	"github.com/gin-gonic/gin"
@@ -18,29 +17,6 @@ type UpdateBookInput struct {
 	Author string `json:"author"`
 }
 
-func FindBooks(c *gin.Context) {
-	var books []models.Book
-	// models.DB.Find(&books)
-	c.JSON(http.StatusOK, c.QueryArray("sort"))
-	page, err := strconv.Atoi(c.Query("page"))
-	if err != nil {
-		page = 1
-	}
-	limit, err := strconv.Atoi(c.Query("limit"))
-	if err != nil {
-		limit = 30
-	}
-	params := &models.Params{
-		Page:  page,
-		Limit: limit,
-		OrderBy: []string{
-			"created_at",
-		},
-	}
-
-	c.JSON(http.StatusOK, models.Paginate(params, &books))
-}
-
 func CreateBook(c *gin.Context) {
 	// Validate input
 	var input CreateBookInput
@@ -52,17 +28,6 @@ func CreateBook(c *gin.Context) {
 	// Create book
 	book := models.Book{Title: input.Title, Author: input.Author}
 	models.DB.Create(&book)
-
-	c.JSON(http.StatusOK, gin.H{"data": book})
-}
-
-func FindBook(c *gin.Context) {
-	var book models.Book
-
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
 
 	c.JSON(http.StatusOK, gin.H{"data": book})
 }
@@ -85,17 +50,4 @@ func UpdateBook(c *gin.Context) {
 	models.DB.Model(&book).Updates(input)
 
 	c.JSON(http.StatusOK, gin.H{"data": book})
-}
-
-func DeleteBook(c *gin.Context) {
-	// Get model if exist
-	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
-
-	models.DB.Delete(&book)
-
-	c.JSON(http.StatusOK, gin.H{"data": true})
 }
