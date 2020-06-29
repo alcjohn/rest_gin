@@ -8,11 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type InputInterface struct {
-	Input interface{}
-	Model interface{}
-}
-
 func Delete(m interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if err := models.DB.Where("id = ?", c.Param("id")).First(&m).Error; err != nil {

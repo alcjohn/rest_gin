@@ -2,27 +2,14 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
-	"github.com/alcjohn/rest_gin/auth"
 	"github.com/alcjohn/rest_gin/controllers"
+	"github.com/alcjohn/rest_gin/middlewares"
 	"github.com/alcjohn/rest_gin/models"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
-
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		err := auth.TokenValid(c.Request)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "StatusUnauthorized"})
-			c.Abort()
-			return
-		}
-		c.Next()
-	}
-}
 
 func main() {
 
@@ -35,31 +22,13 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(middlewares.AuthMiddleware())
+
 	models.ConnectDatabase()
 
-	auth := r.Group("/api/auth")
-	{
-		auth.POST("/login", controllers.Login)
-		auth.POST("/register", controllers.Register)
-		auth.GET("/me", AuthMiddleware(), controllers.Me)
-	}
-
-	var booksModel []models.Book
-	books := r.Group("/api/books")
-	books.Use(AuthMiddleware())
-	{
-		books.PATCH("/:id", controllers.UpdateBook)
-		books.POST("/", controllers.CreateBook)
-		books.GET("/", controllers.Paginate(&booksModel))
-		books.DELETE("/:id", controllers.Delete(&booksModel))
-		books.GET("/:id", controllers.Show(&booksModel))
-	}
-
-	var usersModel []models.User
-	users := r.Group("/api/users")
-	{
-		users.GET("/", controllers.Paginate(&usersModel))
-	}
+	controllers.AuthRoutes(r.Group("/api/auth"))
+	controllers.BooksRoutes(r.Group("/api/books"))
+	controllers.UsersRoutes(r.Group("api/users"))
 
 	r.Run(":" + port)
 }

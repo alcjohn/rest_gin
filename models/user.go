@@ -9,7 +9,7 @@ import (
 type User struct {
 	BaseModel
 	Email    string `gorm:"unique;not null" json:"email"`
-	Password string `gorm:"not null" json:"password"`
+	Password string `gorm:"not null" json:"-"`
 }
 
 type UserFormat struct {

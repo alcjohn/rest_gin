@@ -3,23 +3,27 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/alcjohn/rest_gin/dto"
 	"github.com/alcjohn/rest_gin/models"
 	"github.com/gin-gonic/gin"
 )
 
-type CreateBookInput struct {
-	Title  string `json:"title" binding:"required"`
-	Author string `json:"author" binding:"required"`
+type BooksController struct{}
+
+func BooksRoutes(r *gin.RouterGroup) {
+	var controller BooksController
+	var users []models.User
+	var user models.User
+	r.GET("/", Paginate(&users))
+	r.GET("/:id", Show(&user))
+	r.POST("/", controller.Create)
+	r.PATCH("/:id", controller.Update)
+	r.DELETE("/:id", Delete(&user))
 }
 
-type UpdateBookInput struct {
-	Title  string `json:"title"`
-	Author string `json:"author"`
-}
-
-func CreateBook(c *gin.Context) {
+func (controller *BooksController) Create(c *gin.Context) {
 	// Validate input
-	var input CreateBookInput
+	var input dto.CreateBookInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -32,7 +36,7 @@ func CreateBook(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": book})
 }
 
-func UpdateBook(c *gin.Context) {
+func (controller *BooksController) Update(c *gin.Context) {
 	// Get model if exist
 	var book models.Book
 	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
@@ -41,7 +45,7 @@ func UpdateBook(c *gin.Context) {
 	}
 
 	// Validate input
-	var input UpdateBookInput
+	var input dto.UpdateBookInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

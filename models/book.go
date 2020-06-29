@@ -10,7 +10,3 @@ type CreateBookInput struct {
 	Title  string `json:"title" binding:"required"`
 	Author string `json:"author" binding:"required"`
 }
-
-func (b *Book) ValidateCreateInput() {
-	if err := 
-}
