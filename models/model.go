@@ -2,7 +2,10 @@ package models
 
 import (
 	"math"
+	"strings"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type BaseModel struct {
@@ -30,7 +33,7 @@ type Resource struct {
 	Meta MetaResource `json:"meta"`
 }
 
-func Paginate(p *Params, m interface{}) *Resource {
+func Paginate(db *gorm.DB, p *Params, m interface{}) *Resource {
 	var meta MetaResource
 
 	if p.Page < 1 {
@@ -40,18 +43,15 @@ func Paginate(p *Params, m interface{}) *Resource {
 		p.Limit = 30
 	}
 
-	if len(p.OrderBy) > 0 {
-		for _, o := range p.OrderBy {
-			DB.Order(o)
-		}
-	}
+	order := strings.Join(p.OrderBy[:], ", ")
+	order = strings.ReplaceAll(order, ".", " ")
 
 	done := make(chan bool, 1)
 	var count int
 	var offset int
 
 	go func() {
-		DB.Model(m).Count(&count)
+		db.Model(m).Count(&count)
 		done <- true
 	}()
 
@@ -60,7 +60,7 @@ func Paginate(p *Params, m interface{}) *Resource {
 	} else {
 		offset = (p.Page - 1) * p.Limit
 	}
-	DB.Limit(p.Limit).Offset(offset).Find(m)
+	db.Order(order).Limit(p.Limit).Offset(offset).Find(m)
 	<-done
 
 	last := int(math.Ceil(float64(count) / float64(p.Limit)))

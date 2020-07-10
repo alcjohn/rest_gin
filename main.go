@@ -28,7 +28,6 @@ func main() {
 
 	controllers.AuthRoutes(r.Group("/api/auth"))
 	controllers.BooksRoutes(r.Group("/api/books"))
-	controllers.UsersRoutes(r.Group("api/users"))
 
 	r.Run(":" + port)
 }

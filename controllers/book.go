@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/alcjohn/rest_gin/dto"
 	"github.com/alcjohn/rest_gin/models"
@@ -12,13 +13,41 @@ type BooksController struct{}
 
 func BooksRoutes(r *gin.RouterGroup) {
 	var controller BooksController
-	var users []models.User
-	var user models.User
-	r.GET("/", Paginate(&users))
-	r.GET("/:id", Show(&user))
+	r.GET("/", controller.Index)
+	r.GET("/:id", controller.Show)
 	r.POST("/", controller.Create)
 	r.PATCH("/:id", controller.Update)
-	r.DELETE("/:id", Delete(&user))
+	r.DELETE("/:id", controller.Delete)
+}
+
+func (controller *BooksController) Index(c *gin.Context) {
+	var books []models.Book
+	db := models.DB.Where("id > 0")
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		page = 1
+	}
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
+		limit = 30
+	}
+	params := &models.Params{
+		Page:    page,
+		Limit:   limit,
+		OrderBy: c.QueryArray("sort[]"),
+	}
+	c.JSON(http.StatusOK, models.Paginate(db, params, &books))
+}
+
+func (controller *BooksController) Show(c *gin.Context) {
+	var book models.Book
+	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": book})
+
 }
 
 func (controller *BooksController) Create(c *gin.Context) {
@@ -54,4 +83,16 @@ func (controller *BooksController) Update(c *gin.Context) {
 	models.DB.Model(&book).Updates(input)
 
 	c.JSON(http.StatusOK, gin.H{"data": book})
+}
+
+func (controller *BooksController) Delete(c *gin.Context) {
+	var book models.Book
+	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	models.DB.Delete(&book)
+
+	c.JSON(http.StatusOK, gin.H{"data": true})
 }
