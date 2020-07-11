@@ -6,6 +6,7 @@ import (
 
 	"github.com/alcjohn/rest_gin/dto"
 	"github.com/alcjohn/rest_gin/models"
+	"github.com/alcjohn/rest_gin/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,12 +32,12 @@ func (controller *BooksController) Index(c *gin.Context) {
 	if err != nil {
 		limit = 30
 	}
-	params := &models.Params{
+	pagination := &utils.Pagination{
 		Page:    page,
 		Limit:   limit,
 		OrderBy: c.QueryArray("sort[]"),
 	}
-	c.JSON(http.StatusOK, models.Paginate(db, params, &books))
+	c.JSON(http.StatusOK, pagination.Paginate(db, &books))
 }
 
 func (controller *BooksController) Show(c *gin.Context) {

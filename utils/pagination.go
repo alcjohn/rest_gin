@@ -1,21 +1,13 @@
-package models
+package utils
 
 import (
 	"math"
 	"strings"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
 
-type BaseModel struct {
-	ID        uint       `json:"id" gorm:"primary_key"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"-"`
-}
-
-type Params struct {
+type Pagination struct {
 	Page    int
 	Limit   int
 	OrderBy []string
@@ -33,7 +25,7 @@ type Resource struct {
 	Meta MetaResource `json:"meta"`
 }
 
-func Paginate(db *gorm.DB, p *Params, m interface{}) *Resource {
+func (p *Pagination) Paginate(db *gorm.DB, m interface{}) *Resource {
 	var meta MetaResource
 
 	if p.Page < 1 {
