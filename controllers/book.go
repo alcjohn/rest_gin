@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/alcjohn/rest_gin/middlewares"
+
 	"github.com/alcjohn/rest_gin/dto"
 	"github.com/alcjohn/rest_gin/models"
 	"github.com/alcjohn/rest_gin/utils"
@@ -15,10 +17,14 @@ type BooksController struct{}
 func BooksRoutes(r *gin.RouterGroup) {
 	var controller BooksController
 	r.GET("/", controller.Index)
-	r.GET("/:id", controller.Show)
 	r.POST("/", controller.Create)
-	r.PATCH("/:id", controller.Update)
-	r.DELETE("/:id", controller.Delete)
+	r.Use(middlewares.BookMiddlewares())
+	{
+		r.GET("/:book_id", controller.Show)
+		r.PATCH("/:book_id", controller.Update)
+		r.DELETE("/:book_id", controller.Delete)
+		CommentsRoutes(r.Group("/:book_id/comments"))
+	}
 }
 
 func (controller *BooksController) Index(c *gin.Context) {
@@ -41,12 +47,7 @@ func (controller *BooksController) Index(c *gin.Context) {
 }
 
 func (controller *BooksController) Show(c *gin.Context) {
-	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
-
+	book := c.Keys["Book"].(models.Book)
 	c.JSON(http.StatusOK, gin.H{"data": book})
 
 }
@@ -67,12 +68,8 @@ func (controller *BooksController) Create(c *gin.Context) {
 }
 
 func (controller *BooksController) Update(c *gin.Context) {
-	// Get model if exist
-	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
+
+	book := c.Keys["Book"].(models.Book)
 
 	// Validate input
 	var input dto.UpdateBookInput
@@ -87,11 +84,8 @@ func (controller *BooksController) Update(c *gin.Context) {
 }
 
 func (controller *BooksController) Delete(c *gin.Context) {
-	var book models.Book
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
+
+	book := c.Keys["Book"].(models.Book)
 
 	models.DB.Delete(&book)
 

@@ -35,12 +35,3 @@ func (u *User) BeforeSave() error {
 	u.Password = string(hashedPassword)
 	return nil
 }
-
-func (u *User) Format() UserFormat {
-	return UserFormat{
-		ID:        u.ID,
-		Email:     u.Email,
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
-	}
-}

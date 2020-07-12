@@ -57,7 +57,7 @@ func (controller *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user.Format())
+	c.JSON(http.StatusOK, user)
 }
 
 func (controller *AuthController) Me(c *gin.Context) {
@@ -66,5 +66,5 @@ func (controller *AuthController) Me(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
-	c.JSON(http.StatusOK, user.Format())
+	c.JSON(http.StatusOK, user)
 }
