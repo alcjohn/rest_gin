@@ -15,6 +15,7 @@ type BooksController struct{}
 
 func BooksRoutes(r *gin.RouterGroup) {
 	var controller BooksController
+
 	r.GET("/", middlewares.PaginationMiddleware(), controller.Index)
 	r.POST("/", controller.Create)
 	r.Use(middlewares.BookMiddlewares())
