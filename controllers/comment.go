@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/alcjohn/rest_gin/middlewares"
 
@@ -16,8 +15,8 @@ type CommentController struct{}
 
 func CommentsRoutes(r *gin.RouterGroup) {
 	var controller CommentController
-	r.GET("/", controller.Index)
-	r.GET("/:comment_id", middlewares.BookMiddlewares(), controller.Show)
+	r.GET("/", middlewares.PaginationMiddleware(), controller.Index)
+	r.GET("/:comment_id", controller.Show)
 	r.POST("/", controller.Create)
 	r.PATCH("/:comment_id", controller.Update)
 	r.DELETE("/:comment_id", controller.Delete)
@@ -27,27 +26,8 @@ func (controller *CommentController) Index(c *gin.Context) {
 
 	var comments []models.Comment
 	book := c.Keys["Book"].(models.Book)
+	pagination := c.Keys["Pagination"].(utils.Pagination)
 	db := models.DB.Where("book_id = ?", book.ID)
-	includes := c.QueryArray("include[]")
-	if len(includes) > 0 {
-		for _, include := range includes {
-			preload := utils.ToCamelCase(include)
-			db = db.Preload(preload)
-		}
-	}
-	page, err := strconv.Atoi(c.Query("page"))
-	if err != nil {
-		page = 1
-	}
-	limit, err := strconv.Atoi(c.Query("limit"))
-	if err != nil {
-		limit = 30
-	}
-	pagination := &utils.Pagination{
-		Page:    page,
-		Limit:   limit,
-		OrderBy: c.QueryArray("sort[]"),
-	}
 	c.JSON(http.StatusOK, pagination.Paginate(db, &comments))
 }
 

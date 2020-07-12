@@ -11,6 +11,7 @@ type Pagination struct {
 	Page    int
 	Limit   int
 	OrderBy []string
+	Preload []string
 }
 
 type MetaResource struct {
@@ -27,6 +28,8 @@ type Resource struct {
 
 func (p *Pagination) Paginate(db *gorm.DB, m interface{}) *Resource {
 	var meta MetaResource
+	var offset int
+	var count int
 
 	if p.Page < 1 {
 		p.Page = 1
@@ -35,18 +38,22 @@ func (p *Pagination) Paginate(db *gorm.DB, m interface{}) *Resource {
 		p.Limit = 30
 	}
 
-	order := strings.Join(p.OrderBy[:], ", ")
-	order = strings.ReplaceAll(order, ".", " ")
-
 	done := make(chan bool, 1)
-	var count int
-	var offset int
 
 	go func() {
 		db.Model(m).Count(&count)
 		done <- true
 	}()
 
+	order := strings.Join(p.OrderBy[:], ", ")
+	order = strings.ReplaceAll(order, ".", " ")
+
+	if len(p.Preload) > 0 {
+		for _, include := range p.Preload {
+			preload := ToCamelCase(include)
+			db = db.Preload(preload)
+		}
+	}
 	if p.Page == 1 {
 		offset = 0
 	} else {

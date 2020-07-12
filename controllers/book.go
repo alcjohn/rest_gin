@@ -2,13 +2,12 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/alcjohn/rest_gin/middlewares"
+	"github.com/alcjohn/rest_gin/utils"
 
 	"github.com/alcjohn/rest_gin/dto"
 	"github.com/alcjohn/rest_gin/models"
-	"github.com/alcjohn/rest_gin/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +15,7 @@ type BooksController struct{}
 
 func BooksRoutes(r *gin.RouterGroup) {
 	var controller BooksController
-	r.GET("/", controller.Index)
+	r.GET("/", middlewares.PaginationMiddleware(), controller.Index)
 	r.POST("/", controller.Create)
 	r.Use(middlewares.BookMiddlewares())
 	{
@@ -29,20 +28,9 @@ func BooksRoutes(r *gin.RouterGroup) {
 
 func (controller *BooksController) Index(c *gin.Context) {
 	var books []models.Book
+
+	pagination := c.Keys["Pagination"].(utils.Pagination)
 	db := models.DB.Where("id > 0")
-	page, err := strconv.Atoi(c.Query("page"))
-	if err != nil {
-		page = 1
-	}
-	limit, err := strconv.Atoi(c.Query("limit"))
-	if err != nil {
-		limit = 30
-	}
-	pagination := &utils.Pagination{
-		Page:    page,
-		Limit:   limit,
-		OrderBy: c.QueryArray("sort[]"),
-	}
 	c.JSON(http.StatusOK, pagination.Paginate(db, &books))
 }
 
