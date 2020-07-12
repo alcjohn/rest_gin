@@ -63,9 +63,41 @@ func (controller *CommentController) Create(c *gin.Context) {
 }
 
 func (controller *CommentController) Update(c *gin.Context) {
+	book := c.Keys["Book"].(models.Book)
+	var comment models.Comment
+	user := c.Keys["AuthUser"].(models.User)
+	if err := models.DB.Preload("User").Where("id = ?", c.Param("comment_id")).Where("book_id = ?", book.ID).First(&comment).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+	if user.ID != comment.UserID {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var input dto.UpdateComment
+
+	models.DB.Model(&comment).Updates(input)
+
+	c.JSON(http.StatusOK, gin.H{"data": comment})
 
 }
 
 func (controller *CommentController) Delete(c *gin.Context) {
+	book := c.Keys["Book"].(models.Book)
+	var comment models.Comment
+	user := c.Keys["AuthUser"].(models.User)
+	if err := models.DB.Preload("User").Where("id = ?", c.Param("comment_id")).Where("book_id = ?", book.ID).First(&comment).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+	if user.ID != comment.UserID {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	models.DB.Delete(&comment)
+
+	c.JSON(http.StatusOK, gin.H{"data": true})
 
 }
